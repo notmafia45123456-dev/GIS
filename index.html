@@ -66,14 +66,24 @@
 
     .map-list button {
       border: 0;
-      padding: 14px;
+      padding: 12px 14px;
       border-radius: 14px;
       background: rgba(255,255,255,0.08);
       color: white;
       cursor: pointer;
       text-align: right;
       transition: 0.25s;
-      font-size: clamp(13px, 2vw, 16px);
+      font-size: clamp(13px, 2vw, 15px);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+    }
+
+    .map-list button .map-cat {
+      font-size: 11px;
+      color: #ffd16699;
+      font-weight: normal;
     }
 
     .map-list button:hover,
@@ -249,8 +259,11 @@
       <div class="overlay"></div>
 
       <div class="info">
-        <div class="tag" id="mapTag">Map 01</div>
-        <h2 id="mapTitle">الخريطة 01</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <div class="tag" id="mapCategory"></div>
+          <div class="tag" id="mapTag"></div>
+        </div>
+        <h2 id="mapTitle"></h2>
       </div>
 
       <div class="progress">
@@ -260,22 +273,75 @@
   </main>
 
   <script>
-    const maps = Array.from({ length: 45 }, (_, i) => {
-      const n = String(i + 1).padStart(2, "0");
-      return {
-        title: `الخريطة ${n}`,
-        tag: `Map ${n}`,
-        image: `map_${n}.jpg`
-      };
-    });
+    function encodePath(p) {
+      return p.split('/').map(encodeURIComponent).join('/');
+    }
 
-    const mapImage = document.getElementById("mapImage");
-    const mapTitle = document.getElementById("mapTitle");
-    const mapTag = document.getElementById("mapTag");
-    const mapNumber = document.getElementById("mapNumber");
-    const mapList = document.getElementById("mapList");
+    const maps = [
+      { title: "الخريطة الاساسية",                  category: "عام",                ocean: "",                  image: "الخريطة الاساسية.jpg" },
+      { title: "مركزية متوسط الاسواق الاجرامية",     category: "عام",                ocean: "",                  image: "مركزية متوسط  الاسواق الاجرامية.jpg" },
+      { title: "مركزية الاتجار بالبشر",              category: "عام",                ocean: "",                  image: "مركزيه الاتجار بالبشر.jpg" },
+
+      { title: "التعاون الدولي",                     category: "الحكومة",            ocean: "المحيط الاطلسي",    image: "الحكومة/المحيط الاطلسي/التعاون الدولي.jpg" },
+      { title: "النظام القضائي",                     category: "الحكومة",            ocean: "المحيط الاطلسي",    image: "الحكومة/المحيط الاطلسي/النظام القضائي.jpg" },
+      { title: "متوسط الصمود",                       category: "الحكومة",            ocean: "المحيط الاطلسي",    image: "الحكومة/المحيط الاطلسي/متوسط الصمود.jpg" },
+      { title: "مكافحة غسيل الاموال",                category: "الحكومة",            ocean: "المحيط الاطلسي",    image: "الحكومة/المحيط الاطلسي/مكافحة غسيل الاموال.jpg" },
+
+      { title: "التعاون الدولي",                     category: "الحكومة",            ocean: "المحيط الهادي",     image: "الحكومة/المحيط الهادي/التعاون-الدولي.png" },
+      { title: "النظام القضائي",                     category: "الحكومة",            ocean: "المحيط الهادي",     image: "الحكومة/المحيط الهادي/النظام-القضائي.png" },
+      { title: "متوسط الصمود",                       category: "الحكومة",            ocean: "المحيط الهادي",     image: "الحكومة/المحيط الهادي/متوسط-الصمود.png" },
+      { title: "مكافحة غسيل الاموال",                category: "الحكومة",            ocean: "المحيط الهادي",     image: "الحكومة/المحيط الهادي/مكافحة-غسيل-الاموال.png" },
+
+      { title: "التعاون الدولي",                     category: "الحكومة",            ocean: "المحيط الهندي",     image: "الحكومة/الهندي/التعاون الدولي.jpg" },
+      { title: "النظام القضائي",                     category: "الحكومة",            ocean: "المحيط الهندي",     image: "الحكومة/الهندي/النظام القضائي.jpg" },
+      { title: "متوسط الصمود",                       category: "الحكومة",            ocean: "المحيط الهندي",     image: "الحكومة/الهندي/متوسط الصمود.jpg" },
+      { title: "مكافحة غسيل الاموال",                category: "الحكومة",            ocean: "المحيط الهندي",     image: "الحكومة/الهندي/مكافحة غسيل الاموال.jpg" },
+
+      { title: "الشبكات الاجرامية",                  category: "الفاعلين للجرائم",   ocean: "المحيط الاطلسي",    image: "الفاعلين للجرائم/المحيط الاطلسي/الشبكات الاجراميه.jpg" },
+      { title: "جماعات المافيا",                     category: "الفاعلين للجرائم",   ocean: "المحيط الاطلسي",    image: "الفاعلين للجرائم/المحيط الاطلسي/جامعات-المافيا.png" },
+      { title: "جهات فاعلة اجنبية",                  category: "الفاعلين للجرائم",   ocean: "المحيط الاطلسي",    image: "الفاعلين للجرائم/المحيط الاطلسي/جهات فاعله اجنبية.jpg" },
+      { title: "جهات فاعلة حكومية",                  category: "الفاعلين للجرائم",   ocean: "المحيط الاطلسي",    image: "الفاعلين للجرائم/المحيط الاطلسي/جهات فاعله حكؤمية.jpg" },
+
+      { title: "الشبكات الاجرامية",                  category: "الفاعلين للجرائم",   ocean: "المحيط الهادي",     image: "الفاعلين للجرائم/المحيط الهادي/الشبكات-الاجرامية.png" },
+      { title: "جماعات المافيا",                     category: "الفاعلين للجرائم",   ocean: "المحيط الهادي",     image: "الفاعلين للجرائم/المحيط الهادي/جماعات-المافيا.png" },
+      { title: "جهات فاعلة اجنبية",                  category: "الفاعلين للجرائم",   ocean: "المحيط الهادي",     image: "الفاعلين للجرائم/المحيط الهادي/جهات-فاعلة-اجنبية.png" },
+      { title: "جهات فاعلة حكومية",                  category: "الفاعلين للجرائم",   ocean: "المحيط الهادي",     image: "الفاعلين للجرائم/المحيط الهادي/جهات-فاعلة-حكومية.png" },
+
+      { title: "الشبكات الاجرامية",                  category: "الفاعلين للجرائم",   ocean: "المحيط الهندي",     image: "الفاعلين للجرائم/المحيط الهندي/الشبكات الاجرامية.jpg" },
+      { title: "جماعات المافيا",                     category: "الفاعلين للجرائم",   ocean: "المحيط الهندي",     image: "الفاعلين للجرائم/المحيط الهندي/جماعات المافيا.jpg" },
+      { title: "جهات فاعلة اجنبية",                  category: "الفاعلين للجرائم",   ocean: "المحيط الهندي",     image: "الفاعلين للجرائم/المحيط الهندي/جهات فاعلة اجنبية.jpg" },
+      { title: "جهات فاعلة حكومية",                  category: "الفاعلين للجرائم",   ocean: "المحيط الهندي",     image: "الفاعلين للجرائم/المحيط الهندي/جهات فاعلة حكومية.jpg" },
+
+      { title: "الاتجار بالاسلحة",                   category: "جرائم الجزر",        ocean: "المحيط الاطلسي",    image: "جرائم الجزر/المحيط الاطلسي/الاتجار بالاسلحه.jpg" },
+      { title: "الاتجار بالبشر",                     category: "جرائم الجزر",        ocean: "المحيط الاطلسي",    image: "جرائم الجزر/المحيط الاطلسي/الاتجار بالبشر.jpg" },
+      { title: "الجرائم المالية",                    category: "جرائم الجزر",        ocean: "المحيط الاطلسي",    image: "جرائم الجزر/المحيط الاطلسي/الجرائم المالية.jpg" },
+      { title: "المخدرات الصناعية",                  category: "جرائم الجزر",        ocean: "المحيط الاطلسي",    image: "جرائم الجزر/المحيط الاطلسي/المخدرات الصناعية.jpg" },
+      { title: "تهريب البشر",                        category: "جرائم الجزر",        ocean: "المحيط الاطلسي",    image: "جرائم الجزر/المحيط الاطلسي/تهريب البشر.jpg" },
+      { title: "متوسط الاجرامية",                    category: "جرائم الجزر",        ocean: "المحيط الاطلسي",    image: "جرائم الجزر/المحيط الاطلسي/متؤسط الاجراميه.jpg" },
+
+      { title: "الاتجار بالاسلحة",                   category: "جرائم الجزر",        ocean: "المحيط الهادي",     image: "جرائم الجزر/المحيط الهادي/الاتجار-بالاسلحه.png" },
+      { title: "الاتجار بالبشر",                     category: "جرائم الجزر",        ocean: "المحيط الهادي",     image: "جرائم الجزر/المحيط الهادي/الاتجار-بالبشر.png" },
+      { title: "الجرائم المالية",                    category: "جرائم الجزر",        ocean: "المحيط الهادي",     image: "جرائم الجزر/المحيط الهادي/الجرائم-المالية.png" },
+      { title: "المخدرات الصناعية",                  category: "جرائم الجزر",        ocean: "المحيط الهادي",     image: "جرائم الجزر/المحيط الهادي/المخدرات-الصناعية.png" },
+      { title: "تهريب البشر",                        category: "جرائم الجزر",        ocean: "المحيط الهادي",     image: "جرائم الجزر/المحيط الهادي/تهريب-البشر.png" },
+      { title: "متوسط الاجرامية",                    category: "جرائم الجزر",        ocean: "المحيط الهادي",     image: "جرائم الجزر/المحيط الهادي/متؤسط-الاجراميه.png" },
+
+      { title: "الاتجار بالاسلحة",                   category: "جرائم الجزر",        ocean: "المحيط الهندي",     image: "جرائم الجزر/المحيط الهندي/الاتجار بالاسلحة.jpg" },
+      { title: "الاتجار بالبشر",                     category: "جرائم الجزر",        ocean: "المحيط الهندي",     image: "جرائم الجزر/المحيط الهندي/الاتجار بالبشر.jpg" },
+      { title: "الجرائم المالية",                    category: "جرائم الجزر",        ocean: "المحيط الهندي",     image: "جرائم الجزر/المحيط الهندي/الجرائم المالية.jpg" },
+      { title: "المخدرات الصناعية",                  category: "جرائم الجزر",        ocean: "المحيط الهندي",     image: "جرائم الجزر/المحيط الهندي/المخدرات الصناعية.jpg" },
+      { title: "تهريب البشر",                        category: "جرائم الجزر",        ocean: "المحيط الهندي",     image: "جرائم الجزر/المحيط الهندي/تهريب البشر.jpg" },
+      { title: "متوسط الاجرامية",                    category: "جرائم الجزر",        ocean: "المحيط الهندي",     image: "جرائم الجزر/المحيط الهندي/متؤسط الاجراميه.jpg" },
+    ];
+
+    const mapImage    = document.getElementById("mapImage");
+    const mapTitle    = document.getElementById("mapTitle");
+    const mapTag      = document.getElementById("mapTag");
+    const mapCategory = document.getElementById("mapCategory");
+    const mapNumber   = document.getElementById("mapNumber");
+    const mapList     = document.getElementById("mapList");
     const progressBar = document.getElementById("progressBar");
-    const pauseBtn = document.getElementById("pauseBtn");
+    const pauseBtn    = document.getElementById("pauseBtn");
 
     let current = 0;
     let paused = false;
@@ -291,7 +357,8 @@
       mapList.innerHTML = "";
       maps.forEach((map, index) => {
         const btn = document.createElement("button");
-        btn.textContent = map.title;
+        const cat = [map.category, map.ocean].filter(Boolean).join(' · ');
+        btn.innerHTML = `<span>${map.title}</span><span class="map-cat">${cat}</span>`;
         btn.onclick = () => showMap(index, true);
         mapList.appendChild(btn);
       });
@@ -310,12 +377,15 @@
       mapImage.classList.remove("show");
 
       setTimeout(() => {
-        mapImage.src = map.image;
+        mapImage.src = encodePath(map.image);
         mapImage.onload = () => mapImage.classList.add("show");
+        mapImage.onerror = () => mapImage.classList.add("show");
       }, 200);
 
       mapTitle.textContent = map.title;
-      mapTag.textContent = map.tag;
+      mapTag.textContent = map.ocean || map.category;
+      mapCategory.textContent = map.ocean ? map.category : "";
+      mapCategory.style.display = map.ocean ? "inline-block" : "none";
       mapNumber.textContent = pad(current + 1);
 
       updateActiveButton();
