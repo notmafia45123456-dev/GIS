@@ -14,14 +14,13 @@
 
     body {
       min-height: 100vh;
-      overflow: hidden;
       background: radial-gradient(circle at top, #1b2b4a 0%, #08111f 48%, #02040a 100%);
       color: white;
     }
 
     .site {
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      min-height: 100vh;
       display: grid;
       grid-template-columns: 340px 1fr;
       gap: 24px;
@@ -40,7 +39,7 @@
     }
 
     .sidebar h1 {
-      font-size: 30px;
+      font-size: clamp(20px, 4vw, 30px);
       margin-bottom: 20px;
     }
 
@@ -52,7 +51,7 @@
     }
 
     .counter .num {
-      font-size: 44px;
+      font-size: clamp(28px, 6vw, 44px);
       color: #ffd166;
       font-weight: 900;
     }
@@ -62,7 +61,7 @@
       flex-direction: column;
       gap: 10px;
       overflow: auto;
-      max-height: 450px;
+      max-height: 45vh;
     }
 
     .map-list button {
@@ -74,6 +73,7 @@
       cursor: pointer;
       text-align: right;
       transition: 0.25s;
+      font-size: clamp(13px, 2vw, 16px);
     }
 
     .map-list button:hover,
@@ -95,6 +95,7 @@
       border-radius: 16px;
       cursor: pointer;
       font-weight: bold;
+      font-size: clamp(13px, 2vw, 16px);
     }
 
     .controls button:first-child {
@@ -113,6 +114,7 @@
       border-radius: 30px;
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.1);
+      min-height: 60vw;
     }
 
     .viewer img {
@@ -139,8 +141,9 @@
 
     .info {
       position: absolute;
-      right: 40px;
-      bottom: 40px;
+      right: 20px;
+      bottom: 36px;
+      left: 20px;
       z-index: 5;
     }
 
@@ -151,17 +154,18 @@
       background: rgba(255,209,102,0.2);
       color: #ffd166;
       margin-bottom: 10px;
+      font-size: clamp(12px, 2vw, 16px);
     }
 
     .info h2 {
-      font-size: 54px;
+      font-size: clamp(22px, 5vw, 54px);
     }
 
     .progress {
       position: absolute;
-      left: 30px;
-      right: 30px;
-      bottom: 18px;
+      left: 20px;
+      right: 20px;
+      bottom: 14px;
       height: 4px;
       background: rgba(255,255,255,0.15);
       border-radius: 999px;
@@ -172,6 +176,51 @@
       height: 100%;
       width: 0%;
       background: linear-gradient(90deg,#ffd166,#39a7ff);
+    }
+
+    @media (max-width: 768px) {
+      .site {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 70vw;
+        padding: 14px;
+        gap: 14px;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        border-radius: 20px;
+        padding: 16px;
+      }
+
+      .map-list {
+        max-height: 200px;
+      }
+
+      .viewer {
+        border-radius: 20px;
+        min-height: unset;
+      }
+
+      .info {
+        right: 14px;
+        bottom: 28px;
+        left: 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .site {
+        grid-template-rows: auto 80vw;
+        padding: 10px;
+      }
+
+      .sidebar h1 {
+        font-size: 18px;
+      }
+
+      .controls button {
+        padding: 10px;
+      }
     }
   </style>
 </head>
