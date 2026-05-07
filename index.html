@@ -59,31 +59,84 @@
     .map-list {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      overflow: auto;
-      max-height: 45vh;
+      gap: 8px;
+      overflow-y: auto;
+      flex: 1;
+      scrollbar-width: none;
     }
 
-    .map-list button {
-      border: 0;
-      padding: 12px 14px;
+    .map-list::-webkit-scrollbar { display: none; }
+
+    .cat-group {
       border-radius: 14px;
-      background: rgba(255,255,255,0.08);
-      color: white;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .cat-header {
+      padding: 12px 14px;
+      background: rgba(255,209,102,0.18);
+      color: #ffd166;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      user-select: none;
+    }
+
+    .cat-header::after {
+      content: "▾";
+      transition: transform 0.25s;
+      font-size: 13px;
+    }
+
+    .cat-group.open > .cat-header::after { transform: rotate(-180deg); }
+
+    .cat-body { display: none; }
+    .cat-group.open > .cat-body { display: block; }
+
+    .sub-header {
+      padding: 9px 14px 9px 20px;
+      background: rgba(255,255,255,0.05);
+      color: #aebdda;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      user-select: none;
+    }
+
+    .sub-header::after {
+      content: "▾";
+      font-size: 11px;
+      transition: transform 0.25s;
+    }
+
+    .sub-header.open::after { transform: rotate(-180deg); }
+
+    .sub-group { display: none; }
+    .sub-group.open { display: flex; flex-direction: column; }
+
+    .map-item {
+      border: 0;
+      padding: 10px 14px 10px 24px;
+      background: rgba(255,255,255,0.04);
+      color: #dbe8ff;
       cursor: pointer;
       text-align: right;
-      transition: 0.25s;
-      font-size: clamp(13px, 2vw, 15px);
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 3px;
+      transition: 0.2s;
+      font-size: 13px;
+      border-top: 1px solid rgba(255,255,255,0.04);
     }
 
-    .map-list button .map-cat {
-      font-size: 11px;
-      color: #ffd16699;
-      font-weight: normal;
+    .map-item:hover,
+    .map-item.active {
+      background: rgba(255,209,102,0.2);
+      color: #fff;
     }
 
     .map-list button:hover,
@@ -355,18 +408,91 @@
 
     function buildList() {
       mapList.innerHTML = "";
+      const groups = {};
       maps.forEach((map, index) => {
-        const btn = document.createElement("button");
-        const cat = [map.category, map.ocean].filter(Boolean).join(' · ');
-        btn.innerHTML = `<span>${map.title}</span><span class="map-cat">${cat}</span>`;
-        btn.onclick = () => showMap(index, true);
-        mapList.appendChild(btn);
+        if (!groups[map.category]) groups[map.category] = {};
+        const ocean = map.ocean || "_root";
+        if (!groups[map.category][ocean]) groups[map.category][ocean] = [];
+        groups[map.category][ocean].push({ map, index });
+      });
+
+      for (const [cat, oceans] of Object.entries(groups)) {
+        const catGroup = document.createElement("div");
+        catGroup.className = "cat-group";
+        catGroup.dataset.cat = cat;
+
+        const catHeader = document.createElement("div");
+        catHeader.className = "cat-header";
+        catHeader.textContent = cat;
+        catHeader.onclick = () => catGroup.classList.toggle("open");
+        catGroup.appendChild(catHeader);
+
+        const catBody = document.createElement("div");
+        catBody.className = "cat-body";
+
+        for (const [ocean, items] of Object.entries(oceans)) {
+          if (ocean !== "_root") {
+            const subHeader = document.createElement("div");
+            subHeader.className = "sub-header";
+            subHeader.dataset.ocean = ocean;
+            subHeader.textContent = ocean;
+
+            const subGroup = document.createElement("div");
+            subGroup.className = "sub-group";
+
+            subHeader.onclick = () => {
+              subHeader.classList.toggle("open");
+              subGroup.classList.toggle("open");
+            };
+
+            items.forEach(({ map, index }) => {
+              const btn = document.createElement("button");
+              btn.className = "map-item";
+              btn.textContent = map.title;
+              btn.dataset.index = index;
+              btn.onclick = () => showMap(index, true);
+              subGroup.appendChild(btn);
+            });
+
+            catBody.appendChild(subHeader);
+            catBody.appendChild(subGroup);
+          } else {
+            items.forEach(({ map, index }) => {
+              const btn = document.createElement("button");
+              btn.className = "map-item";
+              btn.textContent = map.title;
+              btn.dataset.index = index;
+              btn.onclick = () => showMap(index, true);
+              catBody.appendChild(btn);
+            });
+          }
+        }
+
+        catGroup.appendChild(catBody);
+        mapList.appendChild(catGroup);
+      }
+    }
+
+    function expandToMap(index) {
+      const map = maps[index];
+      mapList.querySelectorAll(".cat-group").forEach(g => {
+        if (g.dataset.cat === map.category) {
+          g.classList.add("open");
+          if (map.ocean) {
+            g.querySelectorAll(".sub-header").forEach(sh => {
+              if (sh.dataset.ocean === map.ocean) {
+                sh.classList.add("open");
+                sh.nextElementSibling.classList.add("open");
+              }
+            });
+          }
+        }
       });
     }
 
     function updateActiveButton() {
-      [...mapList.children].forEach((btn, index) => {
-        btn.classList.toggle("active", index === current);
+      mapList.querySelectorAll(".map-item").forEach(btn => {
+        btn.classList.toggle("active", Number(btn.dataset.index) === current);
       });
     }
 
@@ -388,6 +514,7 @@
       mapCategory.style.display = map.ocean ? "inline-block" : "none";
       mapNumber.textContent = pad(current + 1);
 
+      expandToMap(current);
       updateActiveButton();
       startProgress();
 
