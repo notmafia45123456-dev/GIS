@@ -434,6 +434,47 @@
         flex: 1;
         min-height: 0;
       }
+      .overlay-glass {
+        padding: 10px 14px;
+        background: linear-gradient(0deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 30%, transparent 55%);
+      }
+      .tags {
+        gap: 6px;
+        margin-bottom: 6px;
+        flex-wrap: nowrap;
+        overflow: hidden;
+      }
+      .tag {
+        padding: 3px 10px;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .info-title {
+        font-size: 18px;
+        margin-bottom: 8px;
+        line-height: 1.2;
+      }
+      .progress-wrapper {
+        height: 4px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .overlay-glass {
+        padding: 8px 10px;
+        background: linear-gradient(0deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 25%, transparent 45%);
+      }
+      .tags {
+        margin-bottom: 4px;
+      }
+      .tag {
+        padding: 2px 8px;
+        font-size: 10px;
+      }
+      .info-title {
+        font-size: 14px;
+        margin-bottom: 6px;
+      }
     }
   </style>
 </head>
