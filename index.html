@@ -3,8 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>معرض الخرائط</title>
+  <title>معرض الخرائط الإجرامية - اللوحة التفاعلية</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at top right, #0d1321 0%, #030712 100%);
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-hover: rgba(255, 255, 255, 0.07);
+      --accent: #Eab308; /* Golden Amber */
+      --accent-glow: rgba(234, 179, 8, 0.25);
+      --text-main: #F9FAFB;
+      --text-muted: #9CA3AF;
+      --panel-radius: 28px;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -13,181 +26,314 @@
     }
 
     body {
-      min-height: 100vh;
-      background: radial-gradient(circle at top, #1b2b4a 0%, #08111f 48%, #02040a 100%);
-      color: white;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     .site {
       width: 100%;
-      min-height: 100vh;
+      height: 100vh;
+      max-width: 1920px;
       display: grid;
-      grid-template-columns: 340px 1fr;
+      grid-template-columns: 380px 1fr;
       gap: 24px;
-      padding: 28px;
+      padding: 24px;
     }
 
+    /* Sidebar Glassmorphism */
     .sidebar {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--panel-radius);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       padding: 24px;
-      border-radius: 28px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.1);
-      backdrop-filter: blur(18px);
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      overflow: hidden;
+      min-height: 0; /* Ensures the sidebar shrinks to fit grid area */
     }
 
     .sidebar h1 {
-      font-size: clamp(20px, 4vw, 30px);
-      margin-bottom: 20px;
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      letter-spacing: -0.5px;
     }
 
+    .sidebar h1::before {
+      content: "";
+      display: block;
+      width: 6px;
+      height: 28px;
+      background: var(--accent);
+      border-radius: 10px;
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    /* Counter Card */
     .counter {
-      margin-bottom: 20px;
-      padding: 18px;
-      border-radius: 18px;
-      background: rgba(0,0,0,0.25);
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      box-shadow: inset 0 2px 20px rgba(0,0,0,0.2);
+    }
+
+    .counter .details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .counter .label {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 600;
     }
 
     .counter .num {
-      font-size: clamp(28px, 6vw, 44px);
-      color: #ffd166;
+      font-size: 40px;
+      color: var(--accent);
       font-weight: 900;
+      line-height: 1;
+      text-shadow: 0 0 20px var(--accent-glow);
     }
 
-    .sidebar > div:first-child {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
+    /* Scrollable List Container */
+    .map-list-wrapper {
+      flex: 1 1 0%;
       min-height: 0;
+      position: relative;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      padding-left: 8px;
     }
 
     .map-list {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      overflow-y: auto;
-      flex: 1;
-      min-height: 0;
-      scrollbar-width: none;
-      overscroll-behavior: contain;
-      -webkit-overflow-scrolling: touch;
+      gap: 12px;
+      padding-bottom: 20px;
     }
 
-    .map-list::-webkit-scrollbar { display: none; }
+    .map-list-wrapper::-webkit-scrollbar {
+      width: 6px;
+    }
+    .map-list-wrapper::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.02);
+      border-radius: 10px;
+    }
+    .map-list-wrapper::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.25);
+      border-radius: 10px;
+    }
+    .map-list-wrapper::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
 
+    /* Folders / Categories */
     .cat-group {
-      border-radius: 14px;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 16px;
       overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.1);
+      transition: all 0.3s;
     }
 
     .cat-header {
-      padding: 12px 14px;
-      background: rgba(255,209,102,0.18);
-      color: #ffd166;
-      font-weight: bold;
+      padding: 16px;
+      background: rgba(255,255,255,0.03);
+      color: var(--text-main);
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 14px;
+      font-size: 15px;
       user-select: none;
+      transition: 0.2s;
+    }
+
+    .cat-header:hover {
+      background: var(--glass-hover);
     }
 
     .cat-header::after {
-      content: "▾";
-      transition: transform 0.25s;
-      font-size: 13px;
+      content: "▼";
+      font-size: 10px;
+      color: var(--text-muted);
+      transition: transform 0.3s ease;
     }
 
-    .cat-group.open > .cat-header::after { transform: rotate(-180deg); }
+    .cat-group.open {
+      border-color: rgba(234, 179, 8, 0.3);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
 
-    .cat-body { display: none; }
-    .cat-group.open > .cat-body { display: block; }
+    .cat-group.open > .cat-header {
+      color: var(--accent);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
 
+    .cat-group.open > .cat-header::after {
+      transform: rotate(-180deg);
+      color: var(--accent);
+    }
+
+    .cat-body {
+      display: none;
+    }
+
+    .cat-group.open > .cat-body {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Sub Headers / Oceans */
     .sub-header {
-      padding: 9px 14px 9px 20px;
-      background: rgba(255,255,255,0.05);
-      color: #aebdda;
+      padding: 12px 16px 12px 24px;
+      color: #93c5fd; /* Soft Blue for sub-categories */
       cursor: pointer;
-      font-size: 12px;
+      font-size: 14px;
+      font-weight: 600;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-top: 1px solid rgba(255,255,255,0.06);
       user-select: none;
     }
 
-    .sub-header::after {
-      content: "▾";
-      font-size: 11px;
-      transition: transform 0.25s;
+    .sub-header:hover {
+      background: rgba(255,255,255,0.02);
     }
 
-    .sub-header.open::after { transform: rotate(-180deg); }
+    .sub-header::after {
+      content: "▼";
+      font-size: 10px;
+      transition: transform 0.3s;
+    }
 
-    .sub-group { display: none; }
+    .sub-header.open {
+      color: #60a5fa;
+    }
+
+    .sub-header.open::after {
+      transform: rotate(-180deg);
+    }
+
+    .sub-group { display: none; padding-bottom: 8px; }
     .sub-group.open { display: flex; flex-direction: column; }
 
+    /* Items */
     .map-item {
       border: 0;
-      padding: 10px 14px 10px 24px;
-      background: rgba(255,255,255,0.04);
-      color: #dbe8ff;
+      padding: 12px 20px 12px 24px;
+      background: transparent;
+      color: var(--text-muted);
       cursor: pointer;
       text-align: right;
+      transition: all 0.2s ease;
+      font-size: 13.5px;
+      font-weight: 600;
+      position: relative;
+    }
+
+    .map-item::before {
+      content: "";
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--glass-border);
       transition: 0.2s;
-      font-size: 13px;
-      border-top: 1px solid rgba(255,255,255,0.04);
     }
 
-    .map-item:hover,
-    .map-item.active {
-      background: rgba(255,209,102,0.2);
+    .map-item:hover {
       color: #fff;
+      background: rgba(255,255,255,0.03);
+      padding-right: 28px;
     }
 
-    .map-list button:hover,
-    .map-list button.active {
-      background: rgba(255,209,102,0.25);
-      transform: translateX(-4px);
+    .map-item:hover::before {
+      background: #fff;
+      right: 12px;
     }
 
+    .map-item.active {
+      color: #000;
+      background: var(--accent);
+      padding-right: 28px;
+      font-weight: 800;
+    }
+
+    .map-item.active::before {
+      background: #000;
+      right: 12px;
+      width: 6px;
+      height: 6px;
+    }
+
+    /* Controls Bottom */
     .controls {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
       margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--glass-border);
+      display: flex;
     }
 
     .controls button {
-      border: 0;
-      padding: 14px;
+      flex: 1;
+      border: 1px solid var(--glass-border);
+      padding: 16px;
       border-radius: 16px;
       cursor: pointer;
-      font-weight: bold;
-      font-size: clamp(13px, 2vw, 16px);
+      font-size: 16px;
+      font-weight: 800;
+      background: rgba(255,255,255,0.05);
+      color: var(--text-main);
+      transition: 0.3s;
     }
 
-    .controls button:first-child {
-      background: #ffd166;
-      color: black;
+    .controls button:hover {
+      background: rgba(255,255,255,0.1);
+      transform: translateY(-2px);
     }
 
-    .controls button:last-child {
-      background: rgba(255,255,255,0.12);
-      color: white;
+    .controls button.paused {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+      box-shadow: 0 5px 15px var(--accent-glow);
     }
 
+    /* Map Viewer Glassmorphism */
     .viewer {
       position: relative;
+      background: #000;
+      border-radius: var(--panel-radius);
       overflow: hidden;
-      border-radius: 30px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      min-height: 60vw;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 0 0 1px var(--glass-border);
+      display: flex;
     }
 
     .viewer img {
@@ -195,9 +341,8 @@
       height: 100%;
       object-fit: contain;
       opacity: 0;
-      transform: scale(1.05);
-      transition: 0.8s;
-      background: #000;
+      transform: scale(1.03);
+      transition: opacity 0.8s ease, transform 1.2s ease;
     }
 
     .viewer img.show {
@@ -205,97 +350,89 @@
       transform: scale(1);
     }
 
-    .overlay {
+    .overlay-glass {
       position: absolute;
       inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.7), transparent 40%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      background: linear-gradient(0deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.5) 25%, transparent 60%);
+      padding: 40px;
       pointer-events: none;
     }
 
-    .info {
-      position: absolute;
-      right: 20px;
-      bottom: 36px;
-      left: 20px;
-      z-index: 5;
+    .tags {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
     }
 
     .tag {
-      display: inline-block;
-      padding: 8px 14px;
-      border-radius: 999px;
-      background: rgba(255,209,102,0.2);
-      color: #ffd166;
-      margin-bottom: 10px;
-      font-size: clamp(12px, 2vw, 16px);
+      padding: 6px 18px;
+      border-radius: 100px;
+      font-size: 14px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(8px);
     }
 
-    .info h2 {
-      font-size: clamp(22px, 5vw, 54px);
+    .tag.primary {
+      background: var(--accent-glow);
+      color: var(--accent);
+      border-color: rgba(234, 179, 8, 0.4);
     }
 
-    .progress {
-      position: absolute;
-      left: 20px;
-      right: 20px;
-      bottom: 14px;
-      height: 4px;
+    .info-title {
+      font-size: clamp(32px, 4vw, 56px);
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+      margin-bottom: 24px;
+      line-height: 1.2;
+    }
+
+    .progress-wrapper {
+      width: 100%;
+      height: 6px;
       background: rgba(255,255,255,0.15);
-      border-radius: 999px;
+      border-radius: 100px;
       overflow: hidden;
+      backdrop-filter: blur(4px);
     }
 
-    .progress div {
+    .progress-fill {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg,#ffd166,#39a7ff);
+      background: linear-gradient(90deg, #Facc15, #f59e0b);
+      border-radius: 100px;
+      box-shadow: 0 0 12px var(--accent-glow);
     }
 
-    @media (max-width: 768px) {
-      html, body {
+    /* Mobile Responsiveness */
+    @media (max-width: 1024px) {
+      body {
         overflow: hidden;
-        height: 100%;
+        height: 100vh;
       }
-
       .site {
         grid-template-columns: 1fr;
-        grid-template-rows: 1fr 70vw;
-        padding: 14px;
-        gap: 14px;
+        grid-template-rows: auto 1fr;
         height: 100vh;
-        min-height: unset;
+        padding: 16px;
+        gap: 16px;
         overflow: hidden;
       }
-
-      .sidebar {
-        border-radius: 20px;
-        padding: 16px;
-      }
-
       .viewer {
-        border-radius: 20px;
-        min-height: unset;
+        min-height: 0;
+        height: auto;
+        order: -1;
       }
-
-      .info {
-        right: 14px;
-        bottom: 28px;
-        left: 14px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .site {
-        grid-template-rows: 1fr 80vw;
-        padding: 10px;
-      }
-
-      .sidebar h1 {
-        font-size: 18px;
-      }
-
-      .controls button {
-        padding: 10px;
+      .sidebar {
+        max-height: none;
+        flex: 1;
+        min-height: 0;
       }
     }
   </style>
@@ -304,36 +441,36 @@
 
   <main class="site">
     <aside class="sidebar">
-      <div>
-        <h1>معرض الخرائط</h1>
+      <h1>معرض الخرائط الإجرامية</h1>
 
-        <div class="counter">
+      <div class="counter">
+        <div class="details">
+          <span class="label">الخريطة الحالية</span>
           <div class="num" id="mapNumber">01</div>
-          <span>الخريطة الحالية</span>
         </div>
+      </div>
 
+      <div class="map-list-wrapper">
         <div class="map-list" id="mapList"></div>
       </div>
 
       <div class="controls">
-        <button id="pauseBtn">إيقاف</button>
+        <button id="pauseBtn">إيقاف العرض التلقائي</button>
       </div>
     </aside>
 
     <section class="viewer">
       <img id="mapImage" src="" alt="Map" />
-      <div class="overlay"></div>
-
-      <div class="info">
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-          <div class="tag" id="mapCategory"></div>
+      <div class="overlay-glass">
+        <div class="tags">
+          <div class="tag primary" id="mapCategory"></div>
           <div class="tag" id="mapTag"></div>
         </div>
-        <h2 id="mapTitle"></h2>
-      </div>
-
-      <div class="progress">
-        <div id="progressBar"></div>
+        <h2 class="info-title" id="mapTitle"></h2>
+        
+        <div class="progress-wrapper">
+          <div class="progress-fill" id="progressBar"></div>
+        </div>
       </div>
     </section>
   </main>
@@ -572,7 +709,13 @@
 
     pauseBtn.onclick = () => {
       paused = !paused;
-      pauseBtn.textContent = paused ? "تشغيل" : "إيقاف";
+      if (paused) {
+        pauseBtn.textContent = "تشغيل العرض التلقائي";
+        pauseBtn.classList.add("paused");
+      } else {
+        pauseBtn.textContent = "إيقاف العرض التلقائي";
+        pauseBtn.classList.remove("paused");
+      }
     };
 
     buildList();
