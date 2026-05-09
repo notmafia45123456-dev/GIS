@@ -72,6 +72,8 @@
       flex: 1;
       min-height: 0;
       scrollbar-width: none;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
     }
 
     .map-list::-webkit-scrollbar { display: none; }
@@ -251,6 +253,11 @@
     }
 
     @media (max-width: 768px) {
+      html, body {
+        overflow: hidden;
+        height: 100%;
+      }
+
       .site {
         grid-template-columns: 1fr;
         grid-template-rows: 1fr 70vw;
